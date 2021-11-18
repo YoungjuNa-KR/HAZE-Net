@@ -61,7 +61,7 @@ class GazeEstimationAbstractModel(nn.Module):
         )
 
         return x_l, x_r, xl_dct, xr_dct, face, concat, fc
-        # return x_l, x_r, face, concat, fc
+
 
     def forward(self, left_eye, right_eye, face, headpose):
         _,_, h, w = left_eye.size()
@@ -89,21 +89,6 @@ class GazeEstimationAbstractModel(nn.Module):
         right_eye_dct = self.dct(right_eye)
         right_eye_dct = right_eye_dct * hf_mask
         right_eye_dct = self.idct(right_eye_dct)
-        
-        # for i in range(1):
-        #     ndarr = right_eye_dct[i]
-
-        #     n = torch.argmin(ndarr) 
-        #     min = torch.flatten(ndarr)[n]
-
-            
-        #     m = torch.argmax(ndarr) 
-        #     max = torch.flatten(ndarr)[m]
-        #     ndarr = ndarr - min
-        #     print(ndarr)
-        #     ndarr = ndarr.byte().permute(1, 2, 0).cpu().numpy()
-        #     imageio.imwrite('{}.jpg'.format(i), ndarr)
-
 
         right_eye_dct = self.left_dct_features(right_eye_dct)
         right_eye_dct = torch.flatten(right_eye_dct, 1)
@@ -117,30 +102,26 @@ class GazeEstimationAbstractModel(nn.Module):
         # torch.Size([7, 1024]) 
         #face dct\
 
-        # _,_, h, w = face.size()
-        # mask = torch.ones((h, w), dtype=torch.int64, device = torch.device('cuda:0'))
-        # diagonal = w-(w//6)
-        # hf_mask = torch.fliplr(torch.triu(mask, diagonal)) != 1
-        # hf_mask = hf_mask.unsqueeze(0).expand(face.size())
+        _,_, h, w = face.size()
+        mask = torch.ones((h, w), dtype=torch.int64, device = torch.device('cuda:0'))
+        diagonal = w-(w//6)
+        hf_mask = torch.fliplr(torch.triu(mask, diagonal)) != 1
+        hf_mask = hf_mask.unsqueeze(0).expand(face.size())
 
-        # face_dct = self.dct(face)
-        # face_dct = face_dct * hf_mask
-        # face_dct = self.idct(face_dct)
+        face_dct = self.dct(face)
+        face_dct = face_dct * hf_mask
+        face_dct = self.idct(face_dct)
 
-        # b,c,h,w = face_dct.size()
+        b,c,h,w = face_dct.size()
         
         face_dct = self.face_dct_features(face)
         face_dct = torch.flatten(face_dct, 1)
         face_dct = self.face(face_dct)
 
         features = torch.cat((left_x, left_eye_dct, right_x, right_eye_dct, face_dct ), dim=1)
-        # features = torch.cat((left_x, left_eye_dct, right_x, right_eye_dct ), dim=1)
-        # features = torch.cat((left_x, right_x ), dim=1)
-        # print(eyes_x.shape)
         # torch.Size([7, 2048])
 
         features = self.concat(features)
-        # self.concat은 FC layer
         # torch.Size([7, 512])
 
         features_headpose = torch.cat((features, headpose), dim=1)
@@ -238,8 +219,6 @@ class GazeEstimationModelResnet18(GazeEstimationAbstractModel):
             param.requires_grad = True
     
         self.xl, self.xr, self.xl_dct, self.xr_dct, self.face, self.concat, self.fc = GazeEstimationAbstractModel._create_fc_layers(in_features=_left_model.fc.in_features, out_features=num_out)
-        # self.xl, self.xr, self.concat, self.fc = GazeEstimationAbstractModel._create_fc_layers(in_features=_left_model.fc.in_features, out_features=num_out)
-        # self.xl, self.xr = GazeEstimationAbstractModel._create_fc_layers(in_features=_left_model.fc.in_features, out_features=num_out)
         GazeEstimationAbstractModel._init_weights(self.modules())
 
 def make_model():
