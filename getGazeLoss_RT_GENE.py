@@ -17,57 +17,6 @@ _param_num = {
     "mse": 2
 }
 
-
-# def generateEyePatches(sr_batch_size):
-#     le_c_list = None
-#     re_c_list = None
-#     detected_list = []
-#     eye_patch_dest = []
-#     for i in range(len(sr_batch_size)):
-#         faceboxes = [[0,0,224,224]]
-
-#         minim_l, maxim_l, minim_r, maxim_r = eye_detection.eye_detector(sr_batch_size[i])
-#         if(minim_l ==None or minim_r ==None):
-#             # eye_detector가 양쪽 눈을 검출하지 못한다면, 해당 데이터셋을 skip 한다.
-#             continue
-
-#         # r,g,b 채널에 대하여 각각 crop한 후에, 병합한다.
-#         left_r = sr_batch_size[i][0][minim_l[1]:maxim_l[1] + 1, minim_l[0]:maxim_l[0] + 1]
-#         left_g = sr_batch_size[i][1][minim_l[1]:maxim_l[1] + 1, minim_l[0]:maxim_l[0] + 1]
-#         left_b = sr_batch_size[i][2][minim_l[1]:maxim_l[1] + 1, minim_l[0]:maxim_l[0] + 1]
-
-#         right_r = sr_batch_size[i][0][minim_r[1]:maxim_r[1] + 1, minim_r[0]:maxim_r[0] + 1]
-#         right_g = sr_batch_size[i][1][minim_r[1]:maxim_r[1] + 1, minim_r[0]:maxim_r[0] + 1]
-#         right_b = sr_batch_size[i][2][minim_r[1]:maxim_r[1] + 1, minim_r[0]:maxim_r[0] + 1]
-
-#         le_c = torch.stack([left_r,left_g,left_b])
-#         re_c = torch.stack([right_r,right_g,right_b])
-
-#         # Tensor.cat은 해당 dimention을 증가시키며 tensor를 합한다.
-#         # Tensor.stack은 새로운 dimention을 생성하여 tensor를 합한다.
-#         if le_c.shape != (3,36,60) or re_c.shape != (3,36,60):
-#             continue
-
-#         if i ==0 or le_c_list == None:
-#             le_c_list = le_c
-#             le_c_list = torch.reshape(le_c_list, (1, 3, 36, 60))
-#             re_c_list = re_c
-#             re_c_list = torch.reshape(re_c_list, (1, 3, 36, 60))
-#         else:
-#             le_c = torch.reshape(le_c, (1, 3, 36, 60))
-#             re_c = torch.reshape(re_c, (1, 3, 36, 60))
-#             le_c_list = torch.cat([le_c_list, le_c], dim=0)
-#             re_c_list = torch.cat([re_c_list, re_c], dim=0)
-
-#         detected_list.append(i)
-#         eye_patch_dest.append([i, minim_l[1], minim_l[0], minim_r[1], minim_r[0]])
-
-#         if len(detected_list) == 0:
-#             return None,None,None
-
-#     return le_c_list, re_c_list, detected_list, eye_patch_dest
-
-
 def computeGazeLoss(angular_out, gaze_batch_label):
     _criterion = _loss_fn.get("mse")()
     gaze_loss = _criterion(angular_out, gaze_batch_label).cuda()
@@ -96,8 +45,6 @@ def computeGazeLoss(angular_out, gaze_batch_label):
         else:
             theta_angular_error += np.abs(GT_theta - EST_theta)
     
-    # 추후에 인식된 모든 사람 수를 고려하여 평균을 내주어야 한다.
-    # angular_error는 Pi 와 Theta각도만을 고려하여 계산되었다.
     angular_error = (pi_angular_error + theta_angular_error)*45
         
     return gaze_loss, angular_error
@@ -110,15 +57,6 @@ def loadLabel(lines, names, type):
     gaze_batch_label = []
     head_batch_label = []
     flag = False
-
-    # image_name : P02_000008.png,82,91,134,88
-    # line : P02_000008.png,82,91,134,88
-
-    # Batch_Image_Person_number : int(image_name[i].split("_")[1:])
-    # Batch_Image_number : int(image_name[i].split("_")[:5])
-
-    # Person_number : int(line.split("_")[1:])
-    # Image_number : int(line.split("_")[:5])
 
     for name in names:
 
@@ -281,15 +219,6 @@ def generateEyePatches_fast(sr_batch_size, image_names, type='train'):
         labels = open("./dataset/Validation_eye_coordinate(new).txt", "r")
 
     lines = labels.readlines()
-
-    # image_name : P02_000008.png,82,91,134,88
-    # line : P02_000008.png,82,91,134,88
-
-    # Batch_Image_Person_number : int(image_name[i].split("_")[1:])
-    # Batch_Image_number : int(image_name[i].split("_")[:5])
-
-    # Person_number : int(line.split("_")[1:])
-    # Image_number : int(line.split("_")[:5])
 
     for i in range(len(sr_batch_size)):
         try_num = 0
@@ -454,10 +383,7 @@ def generateEyePatches_fast(sr_batch_size, image_names, type='train'):
         if flag == False:
             print("I Couldn't find eye coordinate")
             continue
-        # r,g,b 채널에 대하여 각각 crop한 후에, 병합한다.
-        # print(left_y, left_x, right_y, right_x)
         detected_list.append(i)
-        # print(sr_batch_size.shape)
         left_r = sr_batch_size[i][0][left_y-18:left_y+18, left_x-30:left_x + 30]
         left_g = sr_batch_size[i][1][left_y-18:left_y+18, left_x-30:left_x + 30]
         left_b = sr_batch_size[i][2][left_y-18:left_y+18, left_x-30:left_x + 30]
@@ -482,7 +408,6 @@ def generateEyePatches_fast(sr_batch_size, image_names, type='train'):
 
         le_c = torch.stack([left_r,left_g,left_b])
         re_c = torch.stack([right_r,right_g,right_b])
-        # print(le_c.shape)
 
 
         if i ==0 or le_c_list == None:
