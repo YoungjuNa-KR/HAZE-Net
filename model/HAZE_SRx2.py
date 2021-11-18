@@ -138,38 +138,17 @@ class HAZE_SR(nn.Module):
 
         for n in range(self.n_hfab):
 
-            # hf = self.dct(x)
-            # hf = hf * hf_mask
-            # hf = self.idct(hf)
-            # hf = self.hfab_grop_0[n](hf)
+            hf = self.dct(x)
+            hf = hf * hf_mask
+            hf = self.idct(hf)
+            hf = self.hfab_grop_0[n](hf)
 
             x = self.rcab_group_0[n](x)
-            # x = x + hf
+            x = x + hf
 
         x = self.up[0](x)
         x = torch.cat((x, copies[0]), 1)
 
-        
-        # _,_, h, w = x.size()
-        # mask = torch.ones((h, w), dtype=torch.int64, device = torch.device('cuda:0'))
-        # diagonal = w-(w//6)
-        # hf_mask = torch.fliplr(torch.triu(mask, diagonal)) != 1
-        # hf_mask = hf_mask.unsqueeze(0).expand(x.size())
-
-        # for n in range(self.n_hfab):
-
-        #     hf = self.dct(x)
-        #     hf = hf * hf_mask
-        #     hf = self.idct(hf)
-        #     hf = self.hfab_grop_1[n](hf)
-        #     x = self.rcab_group_1[n](x)
-
-        #     x = x + hf
-
-
-        # x = self.up[1](x)
-        # x = torch.cat((x, copies[0]), 1)
-        
         # output sr imgs
         sr = self.tail[1](x)
 
