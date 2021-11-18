@@ -13,12 +13,12 @@ checkpoint = Checkpoint(args)
 
 if checkpoint.ok:
     loader = data.Data(args)
-    # model = model.Model(args, checkpoint)
+    model = model.Model(args, checkpoint)
     gaze_model = GazeModel(args).cuda()
     loss = loss.Loss(args, checkpoint) 
     # t = Trainer(args, loader, model, loss, checkpoint)
-    t = Trainer(args, loader, gaze_model, loss, checkpoint)
-    # t = Trainer(args, loader, model, gaze_model, loss, checkpoint)
+    # t = Trainer(args, loader, gaze_model, loss, checkpoint)
+    t = Trainer(args, loader, model, gaze_model, loss, checkpoint)
 
     def main():
         while not t.terminate():
@@ -27,6 +27,6 @@ if checkpoint.ok:
 
         checkpoint.done()
 
-    if __name__ == '__main__':  # 중복 방지를 위한 사용
-        freeze_support()  # 윈도우에서 파이썬이 자원을 효율적으로 사용하게 만들어준다.
+    if __name__ == '__main__':  
+        freeze_support()  
         main()
