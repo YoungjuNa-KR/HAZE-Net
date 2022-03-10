@@ -7,3 +7,7 @@ Official HAZE-Net pytorch implementation
 ------------------------------
 # Inference
 -------------------------------
+
+### Acknowledgement
+This code borrows heavily from <a href="https://arxiv.org/pdf/2003.07018.pdf">Closed-loop Matters: Dual Regression Networks for
+Single Image Super-Resolution</a>
