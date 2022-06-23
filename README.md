@@ -1,5 +1,5 @@
 # HAZE-Net
-Official HAZE-Net pytorch implementation (2022 ECCV under review)
+Official HAZE-Net pytorch implementation
 
 * overall architecture of HAZE-Net
 
